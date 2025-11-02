@@ -63,13 +63,15 @@ const Header = () => {
 
   return (
     <div className="h-[90px] flex items-center justify-center">
-      <div className="grid w-full grid-cols-[24px_1fr] items-center gap-x-3 py-4 px-3 h-full">
-        {fallback ? (
-          <Avatar variant="squared" size="xsmall" fallback={fallback} />
-        ) : (
-          <Skeleton className="h-6 w-6 rounded-md" />
-        )}
-        <div className="block overflow-hidden text-start">
+      <div className="flex w-full items-center gap-3 py-4 px-4 h-full">
+        <div className="flex size-8 items-center justify-center shrink-0">
+          {fallback ? (
+            <Avatar variant="squared" size="xsmall" fallback={fallback} />
+          ) : (
+            <Skeleton className="h-6 w-6 rounded-md" />
+          )}
+        </div>
+        <div className="block overflow-hidden text-start flex-1 min-w-0">
           {name ? (
             <Text
               size="small"
