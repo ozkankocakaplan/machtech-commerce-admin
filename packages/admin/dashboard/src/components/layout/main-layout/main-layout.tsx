@@ -43,7 +43,6 @@ const MainSidebar = () => {
             <CoreRouteSection />
             <ExtensionRouteSection />
           </div>
-          <UtilitySection />
         </div>
         <div className="sticky bottom-0">
           <UserSection />
@@ -150,6 +149,11 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
         },
       ],
     },
+    {
+      icon: <CogSixTooth color="rgb(154, 168, 181)" />,
+      label: t("app.nav.settings.header", "Settings"),
+      to: "/settings",
+    },
   ]
 }
 
@@ -165,7 +169,7 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
   const [isClickedOpen, setIsClickedOpen] = useState(false)
-  const [allowHover, setAllowHover] = useState(false) // Hover sadece kapatıldıktan sonra aktif
+  const [allowHover, setAllowHover] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const itemRef = useRef<HTMLDivElement>(null)
@@ -174,8 +178,8 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
   const isActive = pathname.startsWith(to)
   const isExactActive = pathname === to
   const hasItems = items && items.length > 0
-  const isFlyoutOpen = isHovered // Only hover shows flyout
-  const isDropdownOpen = isClickedOpen // Only click shows nested dropdown
+  const isFlyoutOpen = isHovered
+  const isDropdownOpen = isClickedOpen
   const hasActiveNestedItem = items?.some(item => pathname === item.to)
 
   useEffect(() => {
@@ -191,13 +195,12 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
       const rect = itemRef.current.getBoundingClientRect()
       setMenuPosition({
         top: rect.top,
-        left: rect.right, // Direct connection, no margin
+        left: rect.right,
         itemHeight: rect.height,
       })
     }
   }, [isFlyoutOpen])
 
-  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -208,7 +211,7 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
         !itemRef.current.contains(event.target as Node)
       ) {
         setIsClickedOpen(false)
-        setAllowHover(true) // Enable hover after closing
+        setAllowHover(true)
       }
     }
 
@@ -221,7 +224,6 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
   }, [isClickedOpen])
 
   const handleMouseEnter = () => {
-    // Only show hover menu if hover is allowed and not clicked open
     if (allowHover && !isClickedOpen) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
@@ -231,7 +233,6 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
   }
 
   const handleMouseLeave = () => {
-    // Only hide hover menu if not clicked open
     if (!isClickedOpen) {
       timeoutRef.current = setTimeout(() => {
         setIsHovered(false)
@@ -241,18 +242,15 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
 
   const handleClick = (e: React.MouseEvent) => {
     if (hasItems) {
-      // If has sub items, toggle flyout
       e.preventDefault()
       const willBeOpen = !isClickedOpen
       setIsClickedOpen(willBeOpen)
-      setIsHovered(false) // Disable hover when clicked
+      setIsHovered(false)
 
-      // If closing, enable hover for next time
       if (!willBeOpen) {
         setAllowHover(true)
       }
     } else {
-      // If no sub items, navigate directly
       navigate(to)
     }
   }
@@ -301,7 +299,6 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
           </NavLink>
         )}
 
-        {/* Desktop Nested Dropdown - Click */}
         {hasItems && (
           <RadixCollapsible.Root
             open={isDropdownOpen}
@@ -339,7 +336,6 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
           </RadixCollapsible.Root>
         )}
 
-        {/* Mobile Collapsible */}
         {hasItems && (
           <RadixCollapsible.Root
             defaultOpen={[to, ...(items?.map((i) => i.to) ?? [])].some((p) =>
@@ -398,7 +394,6 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
         )}
       </div>
 
-      {/* Custom Flyout Menu - Desktop Only (Portal) - Hover Only */}
       {hasItems &&
         isFlyoutOpen &&
         typeof window !== "undefined" &&
@@ -413,7 +408,6 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {/* Connector Line */}
             <div
               className="absolute -left-[2px] top-0 w-[2px] bg-[#283046]"
               style={{
@@ -421,10 +415,8 @@ const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
               }}
             />
 
-            {/* Flyout Menu */}
             <div className="bg-[#243758] w-64 flex flex-col relative">
               <div className="flex flex-col">
-                {/* Sub items */}
                 <div className="flex flex-col">
                   {items?.map((item, index) => {
                     const itemIsActive = pathname === item.to
@@ -549,22 +541,6 @@ const ExtensionRouteSection = () => {
           </RadixCollapsible.Content>
         </RadixCollapsible.Root>
       </div>
-    </div>
-  )
-}
-
-const UtilitySection = () => {
-  const location = useLocation()
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex flex-col gap-y-0.5 py-3">
-      <NavItem
-        label={t("app.nav.settings.header")}
-        to="/settings"
-        from={location.pathname}
-        icon={<CogSixTooth color="rgb(154, 168, 181)" />}
-      />
     </div>
   )
 }
