@@ -1,5 +1,5 @@
-import { SidebarLeft, TriangleRightMini, XMark } from "@medusajs/icons"
-import { IconButton, clx } from "@medusajs/ui"
+import { MagnifyingGlass, SidebarLeft, TriangleRightMini, XMark } from "@medusajs/icons"
+import { IconButton, Text, clx } from "@medusajs/ui"
 import { AnimatePresence } from "motion/react"
 import { Dialog as RadixDialog } from "radix-ui"
 import { PropsWithChildren, ReactNode, useEffect, useState } from "react"
@@ -15,6 +15,7 @@ import {
 import { KeybindProvider } from "../../../providers/keybind-provider"
 import { useGlobalShortcuts } from "../../../providers/keybind-provider/hooks"
 import { useSidebar } from "../../../providers/sidebar-provider"
+import { useSearch } from "../../../providers/search-provider"
 import { ProgressBar } from "../../common/progress-bar"
 import { Notifications } from "../notifications"
 
@@ -192,11 +193,32 @@ const ToggleSidebar = () => {
 }
 
 const Topbar = () => {
+  const { t } = useTranslation()
+  const { toggleSearch } = useSearch()
+
   return (
-    <div className="grid w-full grid-cols-2 border-b p-3">
+    <div className="grid w-full grid-cols-3 border-b p-3">
       <div className="flex items-center gap-x-1.5">
         <ToggleSidebar />
         <Breadcrumbs />
+      </div>
+      <div className="flex items-center justify-center">
+        <button
+          onClick={toggleSearch}
+          className={clx(
+            "flex items-center gap-x-2 rounded-md border px-3 py-1.5 outline-none",
+            "hover:bg-ui-bg-subtle-hover",
+            "focus-visible:shadow-borders-focus"
+          )}
+        >
+          <MagnifyingGlass className="text-ui-fg-muted" />
+          <Text size="small" leading="compact" className="text-ui-fg-muted">
+            {t("app.search.label")}
+          </Text>
+          <Text size="small" leading="compact" className="text-ui-fg-disabled">
+            ⌘K
+          </Text>
+        </button>
       </div>
       <div className="flex items-center justify-end gap-x-3">
         <Notifications />
@@ -210,7 +232,7 @@ const DesktopSidebarContainer = ({ children }: PropsWithChildren) => {
 
   return (
     <div
-      className={clx("hidden h-screen w-[220px] border-e", {
+      className={clx("hidden h-screen w-[280px] bg-[#243758]", {
         "lg:flex": desktop,
       })}
     >
@@ -234,7 +256,7 @@ const MobileSidebarContainer = ({ children }: PropsWithChildren) => {
         />
         <RadixDialog.Content
           className={clx(
-            "bg-ui-bg-subtle shadow-elevation-modal fixed inset-y-2 start-2 flex w-full max-w-[304px] flex-col overflow-hidden rounded-lg border-r",
+            "bg-[#283046] shadow-elevation-modal fixed inset-y-2 start-2 flex w-full max-w-[304px] flex-col overflow-hidden rounded-lg",
             "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-start-1/2 data-[state=open]:slide-in-from-start-1/2 duration-200"
           )}
         >

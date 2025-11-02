@@ -30,11 +30,11 @@ export type INavItem = {
 }
 
 const BASE_NAV_LINK_CLASSES =
-  "text-ui-fg-subtle transition-fg hover:bg-ui-bg-subtle-hover flex items-center gap-x-2 rounded-md py-0.5 pl-0.5 pr-2 outline-none [&>svg]:text-ui-fg-subtle focus-visible:shadow-borders-focus"
+  "text-white transition-all duration-200 hover:bg-[#172b4f] flex items-center gap-x-2  py-2 pl-3 pr-2 outline-none [&>svg]:text-white focus-visible:shadow-borders-focus"
 const ACTIVE_NAV_LINK_CLASSES =
-  "bg-ui-bg-base shadow-elevation-card-rest text-ui-fg-base hover:bg-ui-bg-base"
-const NESTED_NAV_LINK_CLASSES = "pl-[34px] pr-2 py-1 w-full text-ui-fg-muted"
-const SETTING_NAV_LINK_CLASSES = "pl-2 py-1"
+  "bg-[#172b4f] text-white hover:bg-[#172b4f]"
+const NESTED_NAV_LINK_CLASSES = "pl-10 pr-2 py-2 w-full text-white"
+const SETTING_NAV_LINK_CLASSES = "pl-3 py-2"
 
 const getIsOpen = (
   to: string,
@@ -93,6 +93,7 @@ export const NavItem = ({
 }: INavItem) => {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(getIsOpen(to, items, pathname))
+  const [hoverOpen, setHoverOpen] = useState(false)
 
   useEffect(() => {
     setOpen(getIsOpen(to, items, pathname))
@@ -118,6 +119,7 @@ export const NavItem = ({
         [NESTED_NAV_LINK_CLASSES]: isNested,
         [ACTIVE_NAV_LINK_CLASSES]: isActive,
         [SETTING_NAV_LINK_CLASSES]: isSetting,
+        "h-[50px] py-0": type === "core" && !isNested,
       })
     },
     [type, pathname]
@@ -126,7 +128,11 @@ export const NavItem = ({
   const isSetting = type === "setting"
 
   return (
-    <div className="px-3">
+    <div
+      className="px-0 relative group"
+      onMouseEnter={() => setHoverOpen(true)}
+      onMouseLeave={() => setHoverOpen(false)}
+    >
       <NavItemTooltip to={to}>
         <NavLink
           to={to}
@@ -134,38 +140,96 @@ export const NavItem = ({
           state={
             from
               ? {
-                  from,
-                }
+                from,
+              }
               : undefined
           }
           className={({ isActive }) => {
             return clx(navLinkClassNames({ isActive, isSetting, to }), {
-              "max-lg:hidden": !!items?.length,
+              " max-lg:hidden": !!items?.length,
             })
           }}
         >
           {type !== "setting" && (
-            <div className="flex size-6 items-center justify-center">
+            <div className="flex w-6 h-6 items-center justify-center">
               <Icon icon={icon} type={type} />
             </div>
           )}
-          <Text size="small" weight="plus" leading="compact">
+          <Text size="small" weight="plus" leading="compact" className="text-white">
             {label}
           </Text>
         </NavLink>
       </NavItemTooltip>
+
+      {/* Desktop Fly-out Menu */}
+      {items && items.length > 0 && (
+        <div className="hidden lg:block">
+          {hoverOpen && (
+            <div className="absolute left-full top-0 bg-[#283046] w-56 shadow-lg z-50 border-l border-[#36415C]">
+              <div className="flex flex-col py-2">
+                <NavItemTooltip to={to}>
+                  <NavLink
+                    to={to}
+                    end
+                    className={({ isActive }) => {
+                      return clx(
+                        navLinkClassNames({
+                          to,
+                          isActive,
+                          isSetting,
+                          isNested: true,
+                        })
+                      )
+                    }}
+                  >
+                    <Text size="small" weight="plus" leading="compact" className="text-white">
+                      {label}
+                    </Text>
+                  </NavLink>
+                </NavItemTooltip>
+                {items.map((item) => {
+                  return (
+                    <NavItemTooltip key={item.to} to={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end
+                        className={({ isActive }) => {
+                          return clx(
+                            navLinkClassNames({
+                              to: item.to,
+                              isActive,
+                              isSetting,
+                              isNested: true,
+                            })
+                          )
+                        }}
+                      >
+                        <Text size="small" weight="plus" leading="compact" className="text-white">
+                          {item.label}
+                        </Text>
+                      </NavLink>
+                    </NavItemTooltip>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Mobile Collapsible */}
       {items && items.length > 0 && (
         <RadixCollapsible.Root open={open} onOpenChange={setOpen}>
           <RadixCollapsible.Trigger
             className={clx(
-              "text-ui-fg-subtle hover:text-ui-fg-base transition-fg hover:bg-ui-bg-subtle-hover flex w-full items-center gap-x-2 rounded-md py-0.5 pl-0.5 pr-2 outline-none lg:hidden",
-              { "pl-2": isSetting }
+              "text-white hover:text-white transition-all duration-200 hover:bg-[#172b4f] flex w-full items-center gap-x-2 rounded-md py-2 pl-3 pr-2 outline-none lg:hidden",
+              { "pl-3": isSetting }
             )}
           >
-            <div className="flex size-6 items-center justify-center">
+            <div className="flex w-6 h-6 items-center justify-center">
               <Icon icon={icon} type={type} />
             </div>
-            <Text size="small" weight="plus" leading="compact">
+            <Text size="small" weight="plus" leading="compact" className="text-white">
               {label}
             </Text>
           </RadixCollapsible.Trigger>
@@ -188,7 +252,7 @@ export const NavItem = ({
                         )
                       }}
                     >
-                      <Text size="small" weight="plus" leading="compact">
+                      <Text size="small" weight="plus" leading="compact" className="text-white">
                         {label}
                       </Text>
                     </NavLink>
@@ -196,7 +260,7 @@ export const NavItem = ({
                 </li>
                 {items.map((item) => {
                   return (
-                    <li key={item.to} className="flex h-7 items-center">
+                    <li key={item.to} className="flex h-8 items-center">
                       <NavItemTooltip to={item.to}>
                         <NavLink
                           to={item.to}
@@ -212,7 +276,7 @@ export const NavItem = ({
                             )
                           }}
                         >
-                          <Text size="small" weight="plus" leading="compact">
+                          <Text size="small" weight="plus" leading="compact" className="text-white">
                             {item.label}
                           </Text>
                         </NavLink>

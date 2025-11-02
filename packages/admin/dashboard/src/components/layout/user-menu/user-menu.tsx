@@ -1,7 +1,7 @@
 import {
   BookOpen,
   CircleHalfSolid,
-  EllipsisHorizontal,
+  ChevronUpMini,
   Keyboard,
   OpenRectArrowOut,
   TimelineVertical,
@@ -88,17 +88,55 @@ export const UserMenu = () => {
 const UserBadge = () => {
   const { user, isPending, isError, error } = useMe()
 
-  const name = [user?.first_name, user?.last_name].filter(Boolean).join(" ")
-  const displayName = name || user?.email
+  // Get user name and display name
+  const name = user ? [user.first_name, user.last_name].filter(Boolean).join(" ") : ""
+  const displayName = name || user?.email || ""
 
-  const fallback = displayName ? displayName[0].toUpperCase() : null
+  // Get initials for avatar from first_name and last_name, or from email
+  const getInitials = () => {
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    }
+    if (user?.first_name) {
+      return user.first_name.substring(0, 2).toUpperCase()
+    }
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase()
+    }
+    return "AA"
+  }
+
+  const initials = user ? getInitials() : "AA"
+  const role = "Administrator" // Role text
 
   if (isPending) {
     return (
-      <button className="shadow-borders-base flex max-w-[192px] select-none items-center gap-x-2 overflow-hidden text-ellipsis whitespace-nowrap rounded-full py-1 ps-1 pe-2.5">
-        <Skeleton className="h-5 w-5 rounded-full" />
-        <Skeleton className="h-[9px] w-[70px]" />
-      </button>
+      <div className="h-[90px] bg-[#172b4f] flex items-center justify-center hover:bg-[#1a315b] rounded-b-lg">
+        <div className="flex w-full items-center gap-3 py-4 px-3 h-full">
+          {/* Avatar skeleton with orange background */}
+          <div className="flex size-8 items-center justify-center shrink-0">
+            <div
+              className="h-8 w-8 rounded-full animate-pulse opacity-60"
+              style={{ backgroundColor: '#F57C00' }}
+            />
+          </div>
+
+          {/* Display name and role skeleton */}
+          <div className="flex flex-col items-start overflow-hidden flex-1 min-w-0 gap-1">
+            <Skeleton className="h-4 w-[140px] rounded" />
+            <div
+              className="h-3.5 w-[100px] rounded animate-pulse opacity-60"
+              style={{ backgroundColor: '#FFB300' }}
+            />
+          </div>
+
+          {/* Icon skeleton */}
+          <div
+            className="h-4 w-4 rounded shrink-0 animate-pulse opacity-60"
+            style={{ backgroundColor: '#CFD8DC' }}
+          />
+        </div>
+      </div>
     )
   }
 
@@ -107,38 +145,47 @@ const UserBadge = () => {
   }
 
   return (
-    <div className="p-3">
+    <div className="h-[90px] bg-[#172b4f] flex items-center justify-center hover:bg-[#1a315b] rounded-b-lg">
       <DropdownMenu.Trigger
         disabled={!user}
         className={clx(
-          "bg-ui-bg-subtle grid w-full cursor-pointer grid-cols-[24px_1fr_15px] items-center gap-2 rounded-md py-1 ps-0.5 pe-2 outline-none",
-          "hover:bg-ui-bg-subtle-hover",
-          "data-[state=open]:bg-ui-bg-subtle-hover",
+          "flex w-full cursor-pointer items-center gap-3 py-4 px-3 outline-none h-full",
+          "data-[state=open]:bg-[#172b4f]",
           "focus-visible:shadow-borders-focus"
         )}
       >
-        <div className="flex size-6 items-center justify-center">
-          {fallback ? (
-            <Avatar size="xsmall" fallback={fallback} />
-          ) : (
-            <Skeleton className="h-6 w-6 rounded-full" />
-          )}
+        {/* Avatar with orange background */}
+        <div className="flex size-8 items-center justify-center shrink-0">
+          <div
+            className="flex size-8 items-center justify-center rounded-full text-white font-bold text-sm"
+            style={{ backgroundColor: '#F57C00' }}
+          >
+            {initials}
+          </div>
         </div>
-        <div className="flex items-center overflow-hidden">
-          {displayName ? (
-            <Text
-              size="xsmall"
-              weight="plus"
-              leading="compact"
-              className="truncate"
-            >
-              {displayName}
-            </Text>
-          ) : (
-            <Skeleton className="h-[9px] w-[70px]" />
-          )}
+
+        {/* Display name and role */}
+        <div className="flex flex-col items-start overflow-hidden flex-1 min-w-0">
+          <Text
+            size="small"
+            weight="plus"
+            leading="compact"
+            className="truncate text-white"
+          >
+            {displayName}
+          </Text>
+          <Text
+            size="small"
+            leading="compact"
+            className="truncate"
+            style={{ color: '#FFB300' }}
+          >
+            {role}
+          </Text>
         </div>
-        <EllipsisHorizontal className="text-ui-fg-muted" />
+
+        {/* Upward caret icon */}
+        <ChevronUpMini className="text-[#CFD8DC] shrink-0" />
       </DropdownMenu.Trigger>
     </div>
   )
@@ -228,8 +275,8 @@ const GlobalKeybindsModal = (props: {
 
   const searchResults = searchValue
     ? globalShortcuts.filter((shortcut) => {
-        return shortcut.label.toLowerCase().includes(searchValue?.toLowerCase())
-      })
+      return shortcut.label.toLowerCase().includes(searchValue?.toLowerCase())
+    })
     : globalShortcuts
 
   return (
