@@ -114,7 +114,7 @@ export const Login = () => {
                   render={({ field }) => {
                     return (
                       <Form.Item>
-                        <Form.Label>{}</Form.Label>
+                        <Form.Label>{ }</Form.Label>
                         <Form.Control>
                           <Input
                             type="password"

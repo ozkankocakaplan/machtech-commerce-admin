@@ -22,6 +22,9 @@ export const LogoBox = ({
     ease: [0.1, 0.8, 0.2, 1.01],
   },
 }: LogoBoxProps) => {
+
+
+
   return (
     <div
       className={clx(
