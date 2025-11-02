@@ -25,9 +25,25 @@ export function getRouteMap({
           element: <MainLayout />,
           children: [
             {
+              path: "/dashboard",
+              errorElement: <ErrorBoundary />,
+              lazy: () => import("../../routes/dashboard"),
+              handle: {
+                breadcrumb: () => t("app.nav.dashboard"),
+              },
+            },
+            {
               path: "/",
               errorElement: <ErrorBoundary />,
               lazy: () => import("../../routes/home"),
+            },
+            {
+              path: "/reviews",
+              errorElement: <ErrorBoundary />,
+              lazy: () => import("../../routes/reviews"),
+              handle: {
+                breadcrumb: () => t("app.nav.reviews"),
+              },
             },
             {
               path: "/products",
