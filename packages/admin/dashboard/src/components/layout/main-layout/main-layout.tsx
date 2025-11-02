@@ -482,7 +482,7 @@ const CoreRouteSection = () => {
   })
 
   return (
-    <nav className="flex flex-col gap-y-1 py-3">
+    <nav className="flex flex-col  py-3">
       {coreRoutes.map((route) => {
         return (
           <CoreRouteItem
