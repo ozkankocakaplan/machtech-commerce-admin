@@ -33,7 +33,7 @@ const BASE_NAV_LINK_CLASSES =
   "text-white transition-all duration-200 hover:bg-[#172b4f] flex items-center gap-x-2  py-2 pl-3 pr-2 outline-none [&>svg]:text-white focus-visible:shadow-borders-focus"
 const ACTIVE_NAV_LINK_CLASSES =
   "bg-[#172b4f] text-white hover:bg-[#172b4f]"
-const NESTED_NAV_LINK_CLASSES = "pl-10 pr-2 py-2 w-full text-white"
+const NESTED_NAV_LINK_CLASSES = "pl-10 pr-2 py-0 w-full text-white h-[50px]"
 const SETTING_NAV_LINK_CLASSES = "pl-3 py-2"
 
 const getIsOpen = (
@@ -129,7 +129,7 @@ export const NavItem = ({
 
   return (
     <div
-      className="px-0 relative group"
+      className="pl-3 pr-0 relative group"
       onMouseEnter={() => setHoverOpen(true)}
       onMouseLeave={() => setHoverOpen(false)}
     >
@@ -151,11 +151,11 @@ export const NavItem = ({
           }}
         >
           {type !== "setting" && (
-            <div className="flex w-6 h-6 items-center justify-center">
+            <div className="flex w-6 h-6 items-center justify-center [&>svg]:w-6 [&>svg]:h-6">
               <Icon icon={icon} type={type} />
             </div>
           )}
-          <Text size="small" weight="plus" leading="compact" className="text-white">
+          <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
             {label}
           </Text>
         </NavLink>
@@ -182,7 +182,7 @@ export const NavItem = ({
                       )
                     }}
                   >
-                    <Text size="small" weight="plus" leading="compact" className="text-white">
+                    <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
                       {label}
                     </Text>
                   </NavLink>
@@ -204,7 +204,7 @@ export const NavItem = ({
                           )
                         }}
                       >
-                        <Text size="small" weight="plus" leading="compact" className="text-white">
+                        <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
                           {item.label}
                         </Text>
                       </NavLink>
@@ -222,14 +222,14 @@ export const NavItem = ({
         <RadixCollapsible.Root open={open} onOpenChange={setOpen}>
           <RadixCollapsible.Trigger
             className={clx(
-              "text-white hover:text-white transition-all duration-200 hover:bg-[#172b4f] flex w-full items-center gap-x-2 rounded-md py-2 pl-3 pr-2 outline-none lg:hidden",
+              "text-white hover:text-white transition-all duration-200 hover:bg-[#172b4f] flex w-full items-center gap-x-2 rounded-md py-2 pl-3 pr-2 outline-none lg:hidden h-[50px]",
               { "pl-3": isSetting }
             )}
           >
-            <div className="flex w-6 h-6 items-center justify-center">
+            <div className="flex w-6 h-6 items-center justify-center [&>svg]:w-6 [&>svg]:h-6">
               <Icon icon={icon} type={type} />
             </div>
-            <Text size="small" weight="plus" leading="compact" className="text-white">
+            <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
               {label}
             </Text>
           </RadixCollapsible.Trigger>
@@ -252,7 +252,7 @@ export const NavItem = ({
                         )
                       }}
                     >
-                      <Text size="small" weight="plus" leading="compact" className="text-white">
+                      <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
                         {label}
                       </Text>
                     </NavLink>
@@ -260,7 +260,7 @@ export const NavItem = ({
                 </li>
                 {items.map((item) => {
                   return (
-                    <li key={item.to} className="flex h-8 items-center">
+                    <li key={item.to} className="flex h-[50px] items-center">
                       <NavItemTooltip to={item.to}>
                         <NavLink
                           to={item.to}
@@ -276,7 +276,7 @@ export const NavItem = ({
                             )
                           }}
                         >
-                          <Text size="small" weight="plus" leading="compact" className="text-white">
+                          <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
                             {item.label}
                           </Text>
                         </NavLink>
@@ -299,8 +299,8 @@ const Icon = ({ icon, type }: { icon?: ReactNode; type: ItemType }) => {
   }
 
   return type === "extension" ? (
-    <div className="shadow-borders-base bg-ui-bg-base flex h-5 w-5 items-center justify-center rounded-[4px]">
-      <div className="h-[15px] w-[15px] overflow-hidden rounded-sm">{icon}</div>
+    <div className="shadow-borders-base bg-ui-bg-base flex h-6 w-6 items-center justify-center rounded-[4px]">
+      <div className="h-[24px] w-[24px] overflow-hidden rounded-sm">{icon}</div>
     </div>
   ) : (
     icon

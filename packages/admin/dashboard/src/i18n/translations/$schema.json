@@ -973,6 +973,18 @@
               "required": ["title", "description"],
               "additionalProperties": false
             },
+            "dashboard": {
+              "type": "string"
+            },
+            "catalogues": {
+              "type": "string"
+            },
+            "reviews": {
+              "type": "string"
+            },
+            "marketing": {
+              "type": "string"
+            },
             "common": {
               "type": "object",
               "properties": {
@@ -1016,7 +1028,7 @@
               "additionalProperties": false
             }
           },
-          "required": ["accessibility", "common", "main", "settings"],
+          "required": ["accessibility", "dashboard", "catalogues", "reviews", "marketing", "common", "main", "settings"],
           "additionalProperties": false
         }
       },

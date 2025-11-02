@@ -1,25 +1,25 @@
 import {
-  Buildings,
   ChevronDownMini,
   CogSixTooth,
-  CurrencyDollar,
   MinusMini,
-  ReceiptPercent,
   ShoppingCart,
   SquaresPlus,
   Tag,
   Users,
+  Sparkles,
 } from "@medusajs/icons"
-import { Avatar, Text } from "@medusajs/ui"
+import { Avatar, Text, clx } from "@medusajs/ui"
 import { Collapsible as RadixCollapsible } from "radix-ui"
 import { useTranslation } from "react-i18next"
+import React, { useState, useRef, useEffect } from "react"
 
 import { useStore } from "../../../hooks/api/store"
 import { Skeleton } from "../../common/skeleton"
 import { INavItem, NavItem } from "../../layout/nav-item"
 import { Shell } from "../../layout/shell"
 
-import { useLocation } from "react-router-dom"
+import { useLocation, NavLink, useNavigate } from "react-router-dom"
+import { createPortal } from "react-dom"
 import { useExtension } from "../../../providers/extension-provider"
 import { UserMenu } from "../user-menu"
 
@@ -34,7 +34,7 @@ export const MainLayout = () => {
 const MainSidebar = () => {
   return (
     <aside className="flex flex-1 flex-col justify-between overflow-y-auto">
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col relative">
         <div className="sticky top-0">
           <Header />
         </div>
@@ -94,76 +94,381 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
 
   return [
     {
-      icon: <ShoppingCart />,
-      label: t("orders.domain"),
-      to: "/orders",
-      items: [
-        // TODO: Enable when domin is introduced
-        // {
-        //   label: t("draftOrders.domain"),
-        //   to: "/draft-orders",
-        // },
-      ],
+      icon: <SquaresPlus color="rgb(106, 214, 240)" />,
+      label: t("app.nav.dashboard", "Dashboard"),
+      to: "/dashboard",
     },
     {
-      icon: <Tag />,
-      label: t("products.domain"),
-      to: "/products",
+      icon: <Tag color="rgb(87, 217, 163)" />,
+      label: t("app.nav.catalogues", "Catalogues"),
+      to: "/catalogues",
       items: [
         {
-          label: t("collections.domain"),
-          to: "/collections",
+          label: t("products.domain"),
+          to: "/products",
+        },
+        {
+          label: t("app.nav.reviews", "Reviews"),
+          to: "/reviews",
         },
         {
           label: t("categories.domain"),
           to: "/categories",
         },
-        // TODO: Enable when domin is introduced
-        // {
-        //   label: t("giftCards.domain"),
-        //   to: "/gift-cards",
-        // },
-      ],
-    },
-    {
-      icon: <Buildings />,
-      label: t("inventory.domain"),
-      to: "/inventory",
-      items: [
         {
-          label: t("reservations.domain"),
-          to: "/reservations",
+          label: t("collections.domain"),
+          to: "/collections",
+        },
+        {
+          label: t("inventory.domain"),
+          to: "/inventory",
         },
       ],
     },
     {
-      icon: <Users />,
+      icon: <ShoppingCart color="rgb(160, 146, 240)" />,
+      label: t("orders.domain"),
+      to: "/orders",
+    },
+    {
+      icon: <Users color="rgb(248, 137, 98)" />,
       label: t("customers.domain"),
       to: "/customers",
-      items: [
-        {
-          label: t("customerGroups.domain"),
-          to: "/customer-groups",
-        },
-      ],
     },
     {
-      icon: <ReceiptPercent />,
-      label: t("promotions.domain"),
-      to: "/promotions",
+      icon: <Sparkles color="rgb(255, 215, 0)" />,
+      label: t("app.nav.marketing", "Marketing"),
+      to: "/marketing",
       items: [
         {
-          label: t("campaigns.domain"),
-          to: "/campaigns",
+          label: t("promotions.domain"),
+          to: "/promotions",
+        },
+        {
+          label: t("priceLists.domain"),
+          to: "/price-lists",
         },
       ],
-    },
-    {
-      icon: <CurrencyDollar />,
-      label: t("priceLists.domain"),
-      to: "/price-lists",
     },
   ]
+}
+
+type CoreRouteItemProps = {
+  icon?: React.ReactNode
+  label: string
+  to: string
+  items?: Array<{ label: string; to: string }>
+}
+
+const CoreRouteItem = ({ icon, label, to, items }: CoreRouteItemProps) => {
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const [isHovered, setIsHovered] = useState(false)
+  const [isClickedOpen, setIsClickedOpen] = useState(false)
+  const [allowHover, setAllowHover] = useState(false) // Hover sadece kapatıldıktan sonra aktif
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const itemRef = useRef<HTMLDivElement>(null)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, itemHeight: 50 })
+
+  const isActive = pathname.startsWith(to)
+  const isExactActive = pathname === to
+  const hasItems = items && items.length > 0
+  const isFlyoutOpen = isHovered // Only hover shows flyout
+  const isDropdownOpen = isClickedOpen // Only click shows nested dropdown
+  const hasActiveNestedItem = items?.some(item => pathname === item.to)
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isFlyoutOpen && itemRef.current) {
+      const rect = itemRef.current.getBoundingClientRect()
+      setMenuPosition({
+        top: rect.top,
+        left: rect.right, // Direct connection, no margin
+        itemHeight: rect.height,
+      })
+    }
+  }, [isFlyoutOpen])
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isClickedOpen &&
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        itemRef.current &&
+        !itemRef.current.contains(event.target as Node)
+      ) {
+        setIsClickedOpen(false)
+        setAllowHover(true) // Enable hover after closing
+      }
+    }
+
+    if (isClickedOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+      }
+    }
+  }, [isClickedOpen])
+
+  const handleMouseEnter = () => {
+    // Only show hover menu if hover is allowed and not clicked open
+    if (allowHover && !isClickedOpen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      setIsHovered(true)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    // Only hide hover menu if not clicked open
+    if (!isClickedOpen) {
+      timeoutRef.current = setTimeout(() => {
+        setIsHovered(false)
+      }, 150)
+    }
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (hasItems) {
+      // If has sub items, toggle flyout
+      e.preventDefault()
+      const willBeOpen = !isClickedOpen
+      setIsClickedOpen(willBeOpen)
+      setIsHovered(false) // Disable hover when clicked
+
+      // If closing, enable hover for next time
+      if (!willBeOpen) {
+        setAllowHover(true)
+      }
+    } else {
+      // If no sub items, navigate directly
+      navigate(to)
+    }
+  }
+
+  return (
+    <>
+      <div
+        ref={itemRef}
+        className="relative"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {hasItems ? (
+          <button
+            onClick={handleClick}
+            className={clx(
+              "w-full text-white transition-all duration-200 flex items-center gap-x-2 h-[50px] py-0 pl-5 pr-2 outline-none focus-visible:shadow-borders-focus",
+              {
+                "bg-[#0d2145]": isExactActive,
+                "bg-[#172b4f]": (isActive || isDropdownOpen || hasActiveNestedItem) && !isExactActive,
+                "hover:bg-[#172b4f]": !isExactActive,
+              }
+            )}
+          >
+            <div className="flex w-6 h-6 items-center justify-center ">{icon}</div>
+            <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
+              {label}
+            </Text>
+          </button>
+        ) : (
+          <NavLink
+            to={to}
+            className={({ isActive: navIsActive }) => {
+              return clx(
+                "text-white transition-all duration-200 hover:bg-[#172b4f] flex items-center gap-x-2 h-[50px] py-0 pl-5 pr-2 outline-none focus-visible:shadow-borders-focus ",
+                {
+                  "bg-[#172b4f]": isActive || navIsActive,
+                }
+              )
+            }}
+          >
+            <div className="flex w-6 h-6 items-center justify-center ">{icon}</div>
+            <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
+              {label}
+            </Text>
+          </NavLink>
+        )}
+
+        {/* Desktop Nested Dropdown - Click */}
+        {hasItems && (
+          <RadixCollapsible.Root
+            open={isDropdownOpen}
+            onOpenChange={setIsClickedOpen}
+          >
+            <RadixCollapsible.Content className="hidden lg:block">
+              <div className="flex flex-col  pb-2  ">
+                {items?.map((item) => {
+                  const itemIsActive = pathname === item.to
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end
+                      className={({ isActive: navIsActive }) => {
+                        const isSelected = itemIsActive || navIsActive
+                        return clx(
+                          "text-white transition-colors duration-150 flex items-center pl-[55px] pr-2 py-2 outline-none h-[50px]",
+                          {
+                            "bg-[#0d2145]": isSelected,
+                            "bg-[#172b4f]": isDropdownOpen && !isSelected,
+                            "hover:bg-[#172b4f]": !isSelected,
+                          }
+                        )
+                      }}
+                    >
+                      <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
+                        {item.label}
+                      </Text>
+                    </NavLink>
+                  )
+                })}
+              </div>
+            </RadixCollapsible.Content>
+          </RadixCollapsible.Root>
+        )}
+
+        {/* Mobile Collapsible */}
+        {hasItems && (
+          <RadixCollapsible.Root
+            defaultOpen={[to, ...(items?.map((i) => i.to) ?? [])].some((p) =>
+              pathname.startsWith(p)
+            )}
+          >
+            <RadixCollapsible.Trigger className="text-white hover:text-white transition-all duration-200 hover:bg-[#172b4f] flex w-full items-center gap-x-2 rounded-md py-2 pl-3 pr-2 outline-none lg:hidden">
+              <div className="flex w-6 h-6 items-center justify-center [&>svg]:w-6 [&>svg]:h-6">{icon}</div>
+              <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
+                {label}
+              </Text>
+            </RadixCollapsible.Trigger>
+            <RadixCollapsible.Content>
+              <div className="flex flex-col gap-y-0.5 pb-2 pt-0.5 lg:hidden">
+                <NavLink
+                  to={to}
+                  end
+                  className={({ isActive: navIsActive }) => {
+                    return clx(
+                      "text-white transition-colors duration-150 hover:bg-[#172b4f] flex items-center pl-10 pr-2 py-2 outline-none",
+                      {
+                        "bg-[#172b4f]": isActive || navIsActive,
+                      }
+                    )
+                  }}
+                >
+                  <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
+                    {label}
+                  </Text>
+                </NavLink>
+                {items?.map((item) => {
+                  const itemIsActive = pathname === item.to
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end
+                      className={({ isActive: navIsActive }) => {
+                        return clx(
+                          "text-white transition-colors duration-150 hover:bg-[#172b4f] flex items-center pl-10 pr-2 py-2 outline-none",
+                          {
+                            "bg-[#172b4f]": itemIsActive || navIsActive,
+                          }
+                        )
+                      }}
+                    >
+                      <Text size="small" weight="plus" leading="compact" className="text-white text-[14px]">
+                        {item.label}
+                      </Text>
+                    </NavLink>
+                  )
+                })}
+              </div>
+            </RadixCollapsible.Content>
+          </RadixCollapsible.Root>
+        )}
+      </div>
+
+      {/* Custom Flyout Menu - Desktop Only (Portal) - Hover Only */}
+      {hasItems &&
+        isFlyoutOpen &&
+        typeof window !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="hidden lg:flex fixed z-[9999] overflow-hidden flex-col"
+            style={{
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Connector Line */}
+            <div
+              className="absolute -left-[2px] top-0 w-[2px] bg-[#283046]"
+              style={{
+                height: `${menuPosition.itemHeight}px`,
+              }}
+            />
+
+            {/* Flyout Menu */}
+            <div className="bg-[#243758] w-64 flex flex-col relative">
+              <div className="flex flex-col">
+                {/* Sub items */}
+                <div className="flex flex-col">
+                  {items?.map((item, index) => {
+                    const itemIsActive = pathname === item.to
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end
+                        onClick={() => {
+                          setIsClickedOpen(false)
+                          setAllowHover(true)
+                        }}
+                        className={({ isActive: navIsActive }) => {
+                          const isSelected = itemIsActive || navIsActive
+                          return clx(
+                            "text-white transition-colors duration-150 flex items-center px-4 outline-none h-[50px]",
+                            {
+                              "bg-[#0d2145]": isSelected,
+                              "bg-[#293f65]": isFlyoutOpen && !isSelected,
+                              "hover:bg-[#293f65]": !isSelected,
+                              "pt-0": index === 0,
+                            }
+                          )
+                        }}
+                      >
+                        <Text
+                          size="small"
+                          weight="plus"
+                          leading="compact"
+                          className="text-white text-[14px]"
+                        >
+                          {item.label}
+                        </Text>
+                      </NavLink>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  )
 }
 
 const CoreRouteSection = () => {
@@ -185,7 +490,15 @@ const CoreRouteSection = () => {
   return (
     <nav className="flex flex-col gap-y-1 py-3">
       {coreRoutes.map((route) => {
-        return <NavItem key={route.to} {...route} />
+        return (
+          <CoreRouteItem
+            key={route.to}
+            icon={route.icon}
+            label={route.label}
+            to={route.to}
+            items={route.items}
+          />
+        )
       })}
     </nav>
   )
@@ -250,7 +563,7 @@ const UtilitySection = () => {
         label={t("app.nav.settings.header")}
         to="/settings"
         from={location.pathname}
-        icon={<CogSixTooth />}
+        icon={<CogSixTooth color="rgb(154, 168, 181)" />}
       />
     </div>
   )

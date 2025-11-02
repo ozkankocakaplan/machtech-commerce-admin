@@ -250,6 +250,10 @@
         "title": "Navigation",
         "description": "Navigation menu for the dashboard."
       },
+      "dashboard": "Dashboard",
+      "catalogues": "Catalogues",
+      "reviews": "Reviews",
+      "marketing": "Marketing",
       "common": {
         "extensions": "Extensions"
       },
